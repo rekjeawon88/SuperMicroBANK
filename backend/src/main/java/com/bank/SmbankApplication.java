@@ -1,4 +1,4 @@
-package com.sm.smbank;
+package com.bank;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SmbankApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SmbankApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(SmbankApplication.class, args);
+    }
 }
