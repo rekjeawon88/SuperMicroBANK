@@ -50,4 +50,22 @@ public class Account {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private Account(User user, String accountNumber, Long balance) {
+        this.user = user;
+        this.accountNumber = accountNumber;
+        this.balance = balance;
+    }
+
+    public static Account create(User user, String accountNumber) {
+        return new Account(user, accountNumber, 0L);
+    }
+
+    public void increaseBalance(Long amount) {
+        this.balance += amount;
+    }
+
+    public void decreaseBalance(Long amount) {
+        this.balance -= amount;
+    }
 }

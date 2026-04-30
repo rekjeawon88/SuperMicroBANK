@@ -57,4 +57,23 @@ public class Transaction {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private Transaction(Account fromAccount, Account toAccount, Long amount, String type) {
+        this.fromAccount = fromAccount;
+        this.toAccount = toAccount;
+        this.amount = amount;
+        this.type = type;
+    }
+
+    public static Transaction createDeposit(Account toAccount, Long amount) {
+        return new Transaction(null, toAccount, amount, "DEPOSIT");
+    }
+
+    public static Transaction createWithdraw(Account fromAccount, Long amount) {
+        return new Transaction(fromAccount, null, amount, "WITHDRAW");
+    }
+
+    public static Transaction createTransfer(Account fromAccount, Account toAccount, Long amount) {
+        return new Transaction(fromAccount, toAccount, amount, "TRANSFER");
+    }
 }
