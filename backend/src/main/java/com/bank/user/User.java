@@ -1,7 +1,6 @@
 package com.bank.user;
 
 import com.bank.account.Account;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -45,6 +44,6 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Account> accountList = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<Account> accounts = new ArrayList<>();
 }

@@ -1,6 +1,5 @@
 package com.bank.account;
 
-import com.bank.transaction.Transaction;
 import com.bank.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,12 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,10 +50,4 @@ public class Account {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @OneToMany(mappedBy = "fromAccount")
-    private List<Transaction> outgoingTransactionList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "toAccount")
-    private List<Transaction> incomingTransactionList = new ArrayList<>();
 }
