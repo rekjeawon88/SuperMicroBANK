@@ -24,8 +24,8 @@ app:
     oracle:
       driver-class-name: oracle.jdbc.OracleDriver
       jdbc-url: jdbc:oracle:thin:@localhost:1521/XEPDB1
-      username: SUPERMICRO_BANK
-      password: SUPERMICRO_BANK
+      username: smbank
+      password: smbank
       maximum-pool-size: 15
       minimum-idle: 5
       connection-timeout: 30000
