@@ -24,6 +24,25 @@ public class AccountService {
         return accountRepository.count();
     }
 
+    public Account getAccountById(Long accountId) {
+        try {
+            return accountRepository.findById(accountId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계좌입니다."));
+        } catch (IllegalArgumentException illegalArgumentException) {
+            throw illegalArgumentException;
+        } catch (Exception exception) {
+            throw new IllegalStateException("계좌 상세 조회 중 오류가 발생했습니다.", exception);
+        }
+    }
+
+    public java.util.List<Account> getAccountsByUserId(Long userId) {
+        try {
+            return accountRepository.findByUserId(userId);
+        } catch (Exception exception) {
+            throw new IllegalStateException("계좌 목록 조회 중 오류가 발생했습니다.", exception);
+        }
+    }
+
     @Transactional
     public Account createAccount(Long userId) {
         try {

@@ -4,6 +4,7 @@ import com.bank.account.Account;
 import com.bank.account.repository.AccountRepository;
 import com.bank.transaction.Transaction;
 import com.bank.transaction.repository.TransactionRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,14 @@ public class TransactionService {
 
     public long getTransactionCount() {
         return transactionRepository.count();
+    }
+
+    public List<Transaction> getTransactionsByAccountId(Long accountId) {
+        try {
+            return transactionRepository.findAllByAccountIdOrderByLatest(accountId);
+        } catch (Exception exception) {
+            throw new IllegalStateException("거래내역 조회 중 오류가 발생했습니다.", exception);
+        }
     }
 
     @Transactional
