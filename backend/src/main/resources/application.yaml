@@ -1,59 +1,26 @@
 spring:
   application:
     name: smbank
-  profiles:
-    active: oracle
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
+    username: smbank
+    password: smbank
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      connection-timeout: 30000
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.OracleDialect
 
-# ✅ Swagger UI 경로 설정
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html       # 접속 URL: http://localhost:8080/swagger-ui.html
+    path: /swagger-ui.html
   api-docs:
-    path: /v3/api-docs           # OpenAPI JSON 스펙 경로
-
-app:
-  datasource:
-    oracle:
-      driver-class-name: oracle.jdbc.OracleDriver
-      jdbc-url: jdbc:oracle:thin:@localhost:1521/XEPDB1
-      username: smbank
-      password: smbank
-      maximum-pool-size: 15
-      minimum-idle: 5
-      connection-timeout: 30000
-    tibero:
-      driver-class-name: com.tmax.tibero.jdbc.TbDriver
-      jdbc-url: jdbc:tibero:thin:@localhost:8629:tibero
-      username: tibero
-      password: tibero
-      maximum-pool-size: 10
-      minimum-idle: 3
-      connection-timeout: 30000
-
----
-spring:
-  config:
-    activate:
-      on-profile: oracle
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
-
----
-spring:
-  config:
-    activate:
-      on-profile: tibero
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
+    path: /v3/api-docs
