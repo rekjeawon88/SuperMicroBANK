@@ -74,25 +74,25 @@ public class TransactionService {
     }
 
     @Transactional
-    public Transaction transfer(Long fromAccountId, Long toAccountId, Long amount) {
+    public Transaction transfer(Long fromAccountId, String toAccountNumber, Long amount) {
         try {
             if (amount == null || amount < 1) {
                 throw new IllegalArgumentException("이체 금액은 1 이상이어야 합니다.");
             }
 
-            if (fromAccountId == null || toAccountId == null) {
+            if (fromAccountId == null || toAccountNumber == null || toAccountNumber.isBlank()) {
                 throw new IllegalArgumentException("출금 계좌와 입금 계좌는 필수입니다.");
-            }
-
-            if (fromAccountId.equals(toAccountId)) {
-                throw new IllegalArgumentException("동일 계좌로 이체할 수 없습니다.");
             }
 
             Account fromAccount = accountRepository.findById(fromAccountId)
                     .orElseThrow(() -> new IllegalArgumentException("출금 계좌가 존재하지 않습니다."));
 
-            Account toAccount = accountRepository.findById(toAccountId)
-                    .orElseThrow(() -> new IllegalArgumentException("입금 계좌가 존재하지 않습니다."));
+            Account toAccount = accountRepository.findByAccountNumber(toAccountNumber)
+                    .orElseThrow(() -> new IllegalArgumentException("입금 계좌번호를 찾을 수 없습니다."));
+
+            if (fromAccount.getId().equals(toAccount.getId())) {
+                throw new IllegalArgumentException("동일 계좌로 이체할 수 없습니다.");
+            }
 
             if (fromAccount.getBalance() < amount) {
                 throw new IllegalArgumentException("잔액이 부족합니다.");

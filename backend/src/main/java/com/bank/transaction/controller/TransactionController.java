@@ -79,7 +79,7 @@ public class TransactionController {
         }
     }
 
-    @Operation(summary = "계좌 이체", description = "출금 계좌에서 입금 계좌로 금액을 이체합니다.")
+    @Operation(summary = "계좌 이체", description = "출금 계좌 ID에서 입금 계좌번호로 금액을 이체합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "이체 성공",
                     content = @Content(schema = @Schema(implementation = TransactionDetailResponse.class))),
@@ -91,7 +91,7 @@ public class TransactionController {
         try {
             Transaction transferTransaction = transactionService.transfer(
                     transferRequest.fromAccountId(),
-                    transferRequest.toAccountId(),
+                    transferRequest.toAccountNumber(),
                     transferRequest.amount()
             );
             return ResponseEntity.ok(TransactionDetailResponse.from(transferTransaction));

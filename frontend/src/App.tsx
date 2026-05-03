@@ -43,14 +43,6 @@ export default function App() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  // 날짜+시분 포맷 (예: 2026. 5. 3. 14:30)
-  const formatDateTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ko-KR') + ' ' +
-      String(d.getHours()).padStart(2, '0') + ':' +
-      String(d.getMinutes()).padStart(2, '0');
-  };
-
   const copyAccountNumber = async (acc: Account) => {
     try {
       await navigator.clipboard.writeText(acc.accountNumber);
@@ -60,6 +52,14 @@ export default function App() {
     } catch {
       showToast('복사에 실패했습니다.', 'error');
     }
+  };
+
+  const formatDateTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('ko-KR', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
   };
 
   const refreshAccounts = async (userId: number) => {
@@ -234,14 +234,18 @@ export default function App() {
                     "flex-1 py-2 text-xs font-bold rounded-md transition-all",
                     authMode === 'login' ? "bg-white text-brand-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
                   )}
-                >로그인</button>
+                >
+                  로그인
+                </button>
                 <button
                   onClick={() => setAuthMode('signup')}
                   className={cn(
                     "flex-1 py-2 text-xs font-bold rounded-md transition-all",
                     authMode === 'signup' ? "bg-white text-brand-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
                   )}
-                >회원가입</button>
+                >
+                  회원가입
+                </button>
               </div>
 
               <form onSubmit={handleAuth} className="space-y-4">
@@ -294,7 +298,8 @@ export default function App() {
                 >
                   {loading
                     ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : authMode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                    : authMode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />
+                  }
                   {loading ? '처리 중...' : authMode === 'login' ? '계좌 접속' : '지금 가입하기'}
                 </button>
               </form>
@@ -302,7 +307,7 @@ export default function App() {
           </div>
         ) : (
           <div className="flex flex-1 overflow-hidden">
-            {/* Sidebar */}
+            {/* Sidebar: Accounts */}
             <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
               <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -316,7 +321,6 @@ export default function App() {
                   + 생성
                 </button>
               </div>
-
               <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide">
                 <AnimatePresence mode="popLayout">
                   {accounts.length === 0 ? (
@@ -339,21 +343,21 @@ export default function App() {
                             : "bg-white border-slate-100 hover:border-slate-300 hover:bg-slate-50"
                         )}
                       >
-                        <div className="flex justify-between items-start mb-3">
-                          {/* 계좌번호 클릭 시 복사 */}
+                        {/* 계좌번호 + 복사 버튼 */}
+                        <div className="flex justify-between items-center mb-3">
                           <button
-                            onClick={(e) => { e.stopPropagation(); copyAccountNumber(acc); }}
+                            onClick={e => { e.stopPropagation(); copyAccountNumber(acc); }}
                             className={cn(
-                              "flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-lg transition-all group/copy",
+                              "flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-lg transition-all",
                               selectedAccount?.id === acc.id
                                 ? "bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20"
                                 : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                             )}
-                            title="클릭하여 계좌번호 복사"
+                            title="클릭하여 복사"
                           >
                             {copiedId === acc.id
                               ? <Check className="w-3 h-3" />
-                              : <Copy className="w-3 h-3 opacity-60 group-hover/copy:opacity-100" />}
+                              : <Copy className="w-3 h-3" />}
                             계좌번호 : {acc.accountNumber}
                           </button>
                           <CreditCard className={cn("w-4 h-4 shrink-0", selectedAccount?.id === acc.id ? "text-brand-primary" : "text-slate-300")} />
@@ -368,7 +372,7 @@ export default function App() {
               </div>
             </aside>
 
-            {/* Content */}
+            {/* Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden bg-[#f8fafc]">
               <div className="flex-1 overflow-y-auto p-8">
                 <div className="max-w-5xl mx-auto grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -392,7 +396,7 @@ export default function App() {
                                 <input
                                   type="text"
                                   placeholder="받는 계좌번호"
-                                  className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:ring-1 focus:ring-brand-primary outline-none"
+                                  className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:ring-1 focus:ring-brand-primary outline-none font-mono"
                                   value={transferForm.toAccountNumber}
                                   onChange={e => setTransferForm({...transferForm, toAccountNumber: e.target.value})}
                                   required
@@ -411,9 +415,7 @@ export default function App() {
                               </button>
                             </form>
                           </div>
-
                           <hr className="border-slate-100" />
-
                           <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-3">
                               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">입금</label>
@@ -427,7 +429,9 @@ export default function App() {
                               <button
                                 onClick={() => handleOperation('deposit')}
                                 className="w-full border-2 border-brand-secondary text-brand-secondary py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-secondary hover:text-white transition-all"
-                              >입금하기</button>
+                              >
+                                입금하기
+                              </button>
                             </div>
                             <div className="space-y-3">
                               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">출금</label>
@@ -441,7 +445,9 @@ export default function App() {
                               <button
                                 onClick={() => handleOperation('withdraw')}
                                 className="w-full border-2 border-brand-secondary text-brand-secondary py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-brand-secondary hover:text-white transition-all"
-                              >출금하기</button>
+                              >
+                                출금하기
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -500,9 +506,7 @@ export default function App() {
                                              <ArrowRightLeft className="w-4 h-4" />}
                                           </div>
                                           <div>
-                                            <p className="font-bold text-slate-700">
-                                              {tx.type === 'DEPOSIT' ? '입금' : tx.type === 'WITHDRAW' ? '출금' : '이체'}
-                                            </p>
+                                            <p className="font-bold text-slate-700">{tx.type === 'DEPOSIT' ? '입금' : tx.type === 'WITHDRAW' ? '출금' : '이체'}</p>
                                             <p className="text-[9px] text-slate-400">
                                               {tx.type === 'TRANSFER'
                                                 ? (tx.fromAccountId === selectedAccount.id ? `#${tx.toAccountId} 계좌로` : `#${tx.fromAccountId} 계좌로부터`)
@@ -520,8 +524,7 @@ export default function App() {
                                         {tx.type === 'DEPOSIT' || (tx.type === 'TRANSFER' && tx.toAccountId === selectedAccount.id) ? '+' : '-'}
                                         ₩{tx.amount.toLocaleString()}
                                       </td>
-                                      {/* 날짜 + 시:분 */}
-                                      <td className="py-3.5 px-4 text-right text-[10px] text-slate-500 font-mono">
+                                      <td className="py-3.5 px-4 text-right text-[10px] text-slate-500 font-mono whitespace-nowrap">
                                         {formatDateTime(tx.createdAt)}
                                       </td>
                                     </motion.tr>

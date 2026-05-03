@@ -14,8 +14,8 @@ export interface Account {
 
 export interface Transaction {
   id: number;
-  fromAccountId: number | null;
-  toAccountId: number | null;
+  fromAccountId: number;
+  toAccountId: number;
   amount: number;
   type: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER';
   createdAt: string;
