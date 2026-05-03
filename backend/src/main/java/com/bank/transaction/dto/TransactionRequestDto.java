@@ -15,8 +15,8 @@ public class TransactionRequestDto {
             @Schema(description = "출금 계좌 ID", example = "1")
             Long fromAccountId,
 
-            @Schema(description = "입금 계좌 ID", example = "2")
-            Long toAccountId,
+            @Schema(description = "입금 계좌 번호", example = "012345678")
+            String toAccountNumber,
 
             @Schema(description = "이체 금액 (원 단위)", example = "50000")
             Long amount
