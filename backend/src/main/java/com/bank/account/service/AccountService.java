@@ -18,13 +18,18 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final int ACCOUNT_NUMBER_LENGTH = 9;
     private static final int MAX_ACCOUNT_NUMBER_RETRY_COUNT = 20;
 
     public long getAccountCount() {
         return accountRepository.count();
     }
 
+    // [트러블슈팅 3] @Transactional(readOnly = true) 명시
+    // 클래스 레벨에 readOnly = true가 선언되어 있어도,
+    // 메서드 레벨에 명시하지 않으면 읽기 전용 의도가 코드에서 드러나지 않음.
+    // readOnly = true는 Hibernate의 dirty checking(변경 감지)을 비활성화하여
+    // flush를 생략하고 스냅샷을 저장하지 않으므로 조회 성능이 개선됨.
+    @Transactional(readOnly = true)
     public Account getAccountById(Long accountId) {
         try {
             return accountRepository.findById(accountId)
@@ -36,6 +41,7 @@ public class AccountService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getAccountsByUserId(Long userId) {
         try {
             return accountRepository.findByUserId(userId);
@@ -63,8 +69,8 @@ public class AccountService {
     private String generateUniqueAccountNumber() {
         for (int retryCount = 0; retryCount < MAX_ACCOUNT_NUMBER_RETRY_COUNT; retryCount++) {
             String candidateAccountNumber = generateNineDigitAccountNumber();
-            boolean alreadyExists = accountRepository.findByAccountNumber(candidateAccountNumber).isPresent();
-            if (!alreadyExists) {
+            // [변경 후] existsByAccountNumber()로 EXISTS 쿼리 실행 — 엔티티 전체 조회 없이 존재 여부만 확인
+            if (!accountRepository.existsByAccountNumber(candidateAccountNumber)) {
                 return candidateAccountNumber;
             }
         }
@@ -72,7 +78,6 @@ public class AccountService {
     }
 
     private String generateNineDigitAccountNumber() {
-        // 1 ~ 999,999,999 범위로 000000000 계좌번호 생성 방지
         int randomNumber = 1 + SECURE_RANDOM.nextInt(999_999_999);
         return String.format("%09d", randomNumber);
     }
