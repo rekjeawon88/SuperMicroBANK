@@ -17,7 +17,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +40,6 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @PostMapping("/accounts")
-    @Transactional
     public ResponseEntity<?> createAccount(@RequestBody CreateAccountRequest createAccountRequest) {
         try {
             Account createdAccount = accountService.createAccount(createAccountRequest.userId());
@@ -62,7 +60,6 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/accounts/{accountId}")
-    @Transactional(readOnly = true)
     public ResponseEntity<?> getAccount(
             @Parameter(description = "조회할 계좌 ID", example = "1")
             @PathVariable Long accountId) {
@@ -85,7 +82,6 @@ public class AccountController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/users/{userId}/accounts")
-    @Transactional(readOnly = true)
     public ResponseEntity<?> getUserAccounts(
             @Parameter(description = "조회할 사용자 ID", example = "1")
             @PathVariable Long userId) {

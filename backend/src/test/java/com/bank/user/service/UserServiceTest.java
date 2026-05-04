@@ -10,12 +10,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,14 +30,19 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserService userService;
 
     private User mockUser;
+    private final PasswordEncoder realEncoder = new BCryptPasswordEncoder();
 
     @BeforeEach
     void setUp() {
-        mockUser = User.create("test@bank.com", "password123", "홍길동");
+        String encodedPassword = realEncoder.encode("password123");
+        mockUser = User.create("test@bank.com", encodedPassword, "홍길동");
     }
 
     // =========================================================
@@ -47,16 +55,15 @@ class UserServiceTest {
         @Test
         @DisplayName("정상 - 올바른 정보로 회원가입 시 저장된 유저를 반환한다")
         void signUp_success() {
-            // given
             given(userRepository.findByEmail("test@bank.com")).willReturn(Optional.empty());
+            given(passwordEncoder.encode(anyString())).willReturn("$2a$10$encodedPassword");
             given(userRepository.save(any(User.class))).willReturn(mockUser);
 
-            // when
             User result = userService.signUp("test@bank.com", "password123", "홍길동");
 
-            // then
             assertThat(result.getEmail()).isEqualTo("test@bank.com");
             assertThat(result.getName()).isEqualTo("홍길동");
+            verify(passwordEncoder).encode("password123");
             verify(userRepository).save(any(User.class));
         }
 
@@ -124,6 +131,7 @@ class UserServiceTest {
         @DisplayName("정상 - 올바른 이메일과 비밀번호로 로그인 성공")
         void login_success() {
             given(userRepository.findByEmail("test@bank.com")).willReturn(Optional.of(mockUser));
+            given(passwordEncoder.matches("password123", mockUser.getPassword())).willReturn(true);
 
             User result = userService.login("test@bank.com", "password123");
 
@@ -160,6 +168,7 @@ class UserServiceTest {
         @DisplayName("예외 - 비밀번호 불일치 시 IllegalArgumentException 발생")
         void login_wrongPassword_throwsException() {
             given(userRepository.findByEmail("test@bank.com")).willReturn(Optional.of(mockUser));
+            given(passwordEncoder.matches("wrongPassword", mockUser.getPassword())).willReturn(false);
 
             assertThatThrownBy(() -> userService.login("test@bank.com", "wrongPassword"))
                     .isInstanceOf(IllegalArgumentException.class)

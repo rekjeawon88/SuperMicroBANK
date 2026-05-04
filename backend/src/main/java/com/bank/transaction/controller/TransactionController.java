@@ -18,7 +18,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +41,6 @@ public class TransactionController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @PostMapping("/accounts/{accountId}/deposit")
-    @Transactional
     public ResponseEntity<?> deposit(
             @Parameter(description = "입금 대상 계좌 ID", example = "1")
             @PathVariable Long accountId,
@@ -66,7 +64,6 @@ public class TransactionController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @PostMapping("/accounts/{accountId}/withdraw")
-    @Transactional
     public ResponseEntity<?> withdraw(
             @Parameter(description = "출금 대상 계좌 ID", example = "1")
             @PathVariable Long accountId,
@@ -90,7 +87,6 @@ public class TransactionController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @PostMapping("/transfer")
-    @Transactional
     public ResponseEntity<?> transfer(@RequestBody TransferRequest transferRequest) {
         try {
             Transaction transferTransaction = transactionService.transfer(
@@ -114,7 +110,6 @@ public class TransactionController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/accounts/{accountId}/transactions")
-    @Transactional(readOnly = true)
     public ResponseEntity<?> getTransactions(
             @Parameter(description = "조회할 계좌 ID", example = "1")
             @PathVariable Long accountId) {

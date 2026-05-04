@@ -3,6 +3,7 @@ package com.bank.user.service;
 import com.bank.user.User;
 import com.bank.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public long getUserCount() {
         return userRepository.count();
@@ -33,7 +35,8 @@ public class UserService {
                 throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
             }
 
-            User newUser = User.create(email, password, name);
+            String encodedPassword = passwordEncoder.encode(password);
+            User newUser = User.create(email, encodedPassword, name);
             return userRepository.save(newUser);
         } catch (IllegalArgumentException illegalArgumentException) {
             throw illegalArgumentException;
@@ -51,7 +54,7 @@ public class UserService {
             User foundUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-            if (!foundUser.getPassword().equals(password)) {
+            if (!passwordEncoder.matches(password, foundUser.getPassword())) {
                 throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
             }
 
