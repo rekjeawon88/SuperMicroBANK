@@ -10,12 +10,12 @@
 | 항목 | 내용 |
 |---|---|
 | **목적** | 금융권 핵심 도메인(계좌, 거래, 이체) 직접 구현을 통한 금융 시스템 이해 |
-| **핵심 기술** | Oracle DB, Spring Transaction, JPA, REST API |
+| **핵심 기술** | Oracle DB, Spring Transaction, JPA, BCrypt, REST API |
 | **기간** | 2026.04.27 ~ 2026.05.04 |
 
 ### 구현 기능
 
-- **회원** — 회원가입 / 로그인
+- **회원** — 회원가입 (BCrypt 비밀번호 암호화) / 로그인
 - **계좌** — 계좌 생성 / 단건 조회 / 사용자별 계좌 목록 조회
 - **거래** — 입금 / 출금 / 계좌번호 기반 계좌이체 / 거래내역 조회
 
@@ -30,6 +30,7 @@
 | Java | 21 | LTS 버전, Record 타입·가상 스레드 등 최신 문법 활용 |
 | Spring Boot | 3.5.14 | 금융권 백엔드 주력 프레임워크 |
 | Spring Data JPA | 3.5.14 | ORM을 통한 엔티티-테이블 매핑, JPQL 쿼리 관리 |
+| Spring Security Crypto | 6.x | Spring Security 전체 없이 BCryptPasswordEncoder만 경량 사용 |
 | Oracle DB (XE) | 21c | 실제 금융권 운영 환경에서 가장 많이 사용되는 RDBMS |
 | ojdbc11 | 21.x | Oracle JDBC 드라이버 |
 | Lombok | 최신 | 보일러플레이트 코드 제거 |
@@ -66,9 +67,24 @@
 private Long id;
 ```
 
+### 비밀번호 BCrypt 암호화
+
+`spring-security-crypto` 의존성만 추가해 Spring Security 전체 스택 없이 `BCryptPasswordEncoder`를 경량으로 사용했습니다. 비밀번호는 회원가입 시 단방향 해시로 저장되며, 로그인 시 `matches()`로 검증합니다.
+
+```java
+// 회원가입
+String encodedPassword = passwordEncoder.encode(password);
+User newUser = User.create(email, encodedPassword, name);
+
+// 로그인
+if (!passwordEncoder.matches(password, foundUser.getPassword())) {
+    throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
+}
+```
+
 ### Spring Transaction 관리
 
-계좌이체는 출금과 입금이 하나의 원자적 단위로 처리되어야 합니다. `@Transactional`을 적용해 두 잔액 변경이 모두 성공하거나 모두 롤백되도록 보장했습니다.
+계좌이체는 출금과 입금이 하나의 원자적 단위로 처리되어야 합니다. `@Transactional`을 Service 레이어에 집중해 두 잔액 변경이 모두 성공하거나 모두 롤백되도록 보장했습니다. Controller에는 `@Transactional`을 두지 않아 계층 책임을 분리했습니다.
 
 ```java
 @Transactional
@@ -83,7 +99,6 @@ public Transaction transfer(Long fromAccountId, String toAccountNumber, Long amo
 ```
 
 - 조회 메서드는 `@Transactional(readOnly = true)`로 분리해 불필요한 dirty checking 비용을 제거했습니다.
-- LAZY 로딩된 연관 엔티티가 트랜잭션 범위 밖에서 접근되는 `LazyInitializationException`을 방지하기 위해 Controller 레이어에도 트랜잭션 범위를 명시했습니다.
 
 ### DB 레벨 데이터 정합성
 
@@ -116,28 +131,29 @@ SuperMicroBANK/
 │       │   │   ├── SmbankApplication.java
 │       │   │   ├── global/
 │       │   │   │   └── config/
-│       │   │   │       ├── CorsConfig.java         # CORS 설정
-│       │   │   │       └── OpenApiConfig.java       # Swagger 설정
+│       │   │   │       ├── CorsConfig.java              # CORS 설정
+│       │   │   │       ├── OpenApiConfig.java            # Swagger 설정
+│       │   │   │       └── PasswordEncoderConfig.java    # BCrypt Bean 등록
 │       │   │   ├── user/
-│       │   │   │   ├── User.java                   # 사용자 엔티티
+│       │   │   │   ├── User.java                        # 사용자 엔티티
 │       │   │   │   ├── controller/UserController.java
 │       │   │   │   ├── service/UserService.java
 │       │   │   │   ├── repository/UserRepository.java
 │       │   │   │   └── dto/
 │       │   │   ├── account/
-│       │   │   │   ├── Account.java                # 계좌 엔티티
+│       │   │   │   ├── Account.java                     # 계좌 엔티티
 │       │   │   │   ├── controller/AccountController.java
 │       │   │   │   ├── service/AccountService.java
 │       │   │   │   ├── repository/AccountRepository.java
 │       │   │   │   └── dto/
 │       │   │   └── transaction/
-│       │   │       ├── Transaction.java            # 거래 엔티티
+│       │   │       ├── Transaction.java                 # 거래 엔티티
 │       │   │       ├── controller/TransactionController.java
 │       │   │       ├── service/TransactionService.java
 │       │   │       ├── repository/TransactionRepository.java
 │       │   │       └── dto/
 │       │   └── resources/
-│       │       └── application.yaml               # Oracle DB 설정
+│       │       └── application.yaml                     # Oracle DB 설정
 │       └── test/
 │           ├── java/com/bank/
 │           │   ├── user/service/UserServiceTest.java
@@ -147,7 +163,7 @@ SuperMicroBANK/
 │           │   ├── transaction/service/TransactionServiceTest.java
 │           │   └── transaction/controller/TransactionControllerIntegrationTest.java
 │           └── resources/
-│               └── application.yaml               # H2 테스트 DB 설정
+│               └── application.yaml                     # H2 테스트 DB 설정
 │
 ├── frontend/                          # React 프론트엔드
 │   ├── src/
@@ -192,7 +208,8 @@ GRANT CONNECT, RESOURCE TO smbank;
 GRANT UNLIMITED TABLESPACE TO smbank;
 ```
 
-> 테이블과 시퀀스는 `spring.jpa.hibernate.ddl-auto: create` 설정으로 애플리케이션 실행 시 자동 생성됩니다.
+> 테이블과 시퀀스는 최초 실행 시 `spring.jpa.hibernate.ddl-auto` 설정에 따라 생성됩니다.  
+> 운영 환경에서는 반드시 `validate` 또는 `none`으로 변경한 뒤 DDL 스크립트를 직접 실행하세요.
 
 <br>
 
@@ -272,7 +289,7 @@ http://localhost:8080/swagger-ui/index.html
 users
 ├── id            (NUMBER, PK, SEQUENCE)
 ├── email         (VARCHAR2, UNIQUE, NOT NULL)
-├── password      (VARCHAR2, NOT NULL)
+├── password      (VARCHAR2, NOT NULL)            -- BCrypt 해시값 저장
 ├── name          (VARCHAR2, NOT NULL)
 └── created_at    (TIMESTAMP, NOT NULL)
 
@@ -288,6 +305,6 @@ transactions
 ├── from_account_id (NUMBER, FK → accounts.id, NULLABLE)
 ├── to_account_id   (NUMBER, FK → accounts.id, NULLABLE)
 ├── amount          (NUMBER, NOT NULL, CHECK > 0)
-├── type            (VARCHAR2, NOT NULL)  -- DEPOSIT / WITHDRAW / TRANSFER
+├── type            (VARCHAR2, NOT NULL)           -- DEPOSIT / WITHDRAW / TRANSFER
 └── created_at      (TIMESTAMP, NOT NULL)
 ```
