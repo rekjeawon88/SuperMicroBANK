@@ -5,6 +5,7 @@ import com.bank.account.repository.AccountRepository;
 import com.bank.user.User;
 import com.bank.user.repository.UserRepository;
 import java.security.SecureRandom;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +36,7 @@ public class AccountService {
         }
     }
 
-    public java.util.List<Account> getAccountsByUserId(Long userId) {
+    public List<Account> getAccountsByUserId(Long userId) {
         try {
             return accountRepository.findByUserId(userId);
         } catch (Exception exception) {
@@ -67,13 +68,12 @@ public class AccountService {
                 return candidateAccountNumber;
             }
         }
-
         throw new IllegalStateException("고유한 계좌번호 생성에 실패했습니다.");
     }
 
     private String generateNineDigitAccountNumber() {
-        int randomNumber = SECURE_RANDOM.nextInt(1_000_000_000);
-        // 항상 9자리 숫자 형태를 유지한다.
+        // 1 ~ 999,999,999 범위로 000000000 계좌번호 생성 방지
+        int randomNumber = 1 + SECURE_RANDOM.nextInt(999_999_999);
         return String.format("%09d", randomNumber);
     }
 }
